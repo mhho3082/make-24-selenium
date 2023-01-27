@@ -6,7 +6,7 @@ import "chromedriver";
 import { parseMake24 } from "./tree.js";
 
 // Environment variables
-import env from "../env.json";
+import env from "../env.json" assert { type: "json" };
 
 // Website to parse for
 const playingCardsIO = env.url;
