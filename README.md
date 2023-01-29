@@ -2,7 +2,7 @@
 
 # `make-24-selenium`
 
-_A helpful CLI judge for a Make 24 game,
+_A helpful CLI judge for Make 24 on `playingcards.io`,
 using JavaScript, Selenium, and binary trees_
 
 </div>
@@ -13,7 +13,7 @@ using JavaScript, Selenium, and binary trees_
 - Create/have a table in https://playingcards.io
   that uses the inbuilt poker deck
 - Install Node.js modules: `yarn` or `node i`
-- Create a `env.json` with a `"url"`
+- Create a `env.json` with a `"url"` field
   pointing to your `playingcards.io` game table
 - Run this app: `yarn monitor`,
   or `npm run monitor`, or `node src/index.js`
