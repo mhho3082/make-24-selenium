@@ -20,7 +20,7 @@ async function monitor() {
 
   try {
     // Set up locators for reuse
-    const enterButton = By.css("button.Splash__start.prettyButton");
+    const enterButton = By.css("button.Splash__start");
     const cardElement = By.css(
       "div.Token--card .CustomSurface .CustomSurface__object"
     );
