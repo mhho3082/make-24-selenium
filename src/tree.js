@@ -65,87 +65,95 @@ class TreeNode {
 
 const scaffolds = [
   new TreeNode(
-    "x",
+    "o0",
     true,
     new TreeNode(
-      "y",
+      "o1",
       true,
-      new TreeNode("z", true, new TreeNode("a"), new TreeNode("b")),
-      new TreeNode("c")
+      new TreeNode("o2", true, new TreeNode("n0"), new TreeNode("n1")),
+      new TreeNode("n2")
     ),
-    new TreeNode("d")
+    new TreeNode("n3")
   ),
   new TreeNode(
-    "x",
+    "o0",
     true,
     new TreeNode(
-      "y",
+      "o1",
       true,
-      new TreeNode("a"),
-      new TreeNode("z", true, new TreeNode("b"), new TreeNode("c"))
+      new TreeNode("n0"),
+      new TreeNode("o2", true, new TreeNode("n1"), new TreeNode("n2"))
     ),
-    new TreeNode("d")
+    new TreeNode("n3")
   ),
   new TreeNode(
-    "x",
+    "o0",
     true,
-    new TreeNode("a"),
+    new TreeNode("n0"),
     new TreeNode(
-      "y",
+      "o1",
       true,
-      new TreeNode("z", true, new TreeNode("b"), new TreeNode("c")),
-      new TreeNode("d")
+      new TreeNode("o2", true, new TreeNode("n1"), new TreeNode("n2")),
+      new TreeNode("n3")
     )
   ),
   new TreeNode(
-    "x",
+    "o0",
     true,
-    new TreeNode("a"),
+    new TreeNode("n0"),
     new TreeNode(
-      "y",
+      "o1",
       true,
-      new TreeNode("b"),
-      new TreeNode("z", true, new TreeNode("c"), new TreeNode("d"))
+      new TreeNode("n1"),
+      new TreeNode("o2", true, new TreeNode("n2"), new TreeNode("n3"))
     )
   ),
   new TreeNode(
-    "x",
+    "o0",
     true,
-    new TreeNode("y", true, new TreeNode("a"), new TreeNode("b")),
-    new TreeNode("z", true, new TreeNode("c"), new TreeNode("d"))
+    new TreeNode("o1", true, new TreeNode("n0"), new TreeNode("n1")),
+    new TreeNode("o2", true, new TreeNode("n2"), new TreeNode("n3"))
   ),
 ];
 
 // --- PARSING ---
 
-// python -c "import itertools; print(list(itertools.permutations([0,1,2,3])))"
-const perms = [
-  [0, 1, 2, 3],
-  [0, 1, 3, 2],
-  [0, 2, 1, 3],
-  [0, 2, 3, 1],
-  [0, 3, 1, 2],
-  [0, 3, 2, 1],
-  [1, 0, 2, 3],
-  [1, 0, 3, 2],
-  [1, 2, 0, 3],
-  [1, 2, 3, 0],
-  [1, 3, 0, 2],
-  [1, 3, 2, 0],
-  [2, 0, 1, 3],
-  [2, 0, 3, 1],
-  [2, 1, 0, 3],
-  [2, 1, 3, 0],
-  [2, 3, 0, 1],
-  [2, 3, 1, 0],
-  [3, 0, 1, 2],
-  [3, 0, 2, 1],
-  [3, 1, 0, 2],
-  [3, 1, 2, 0],
-  [3, 2, 0, 1],
-  [3, 2, 1, 0],
-];
+// Heap's method
+// https://stackoverflow.com/questions/9960908/permutations-in-javascript#20871714
+function permute(permutation) {
+  var length = permutation.length,
+    result = [permutation.slice()],
+    c = new Array(length).fill(0),
+    i = 1,
+    k,
+    p;
 
+  while (i < length) {
+    if (c[i] < i) {
+      k = i % 2 && c[i];
+      p = permutation[i];
+      permutation[i] = permutation[k];
+      permutation[k] = p;
+      ++c[i];
+      i = 1;
+      result.push(permutation.slice());
+    } else {
+      c[i] = 0;
+      ++i;
+    }
+  }
+  return result;
+}
+
+let perms_cache = {};
+function memo_perms(i) {
+  if (!perms_cache[i]) {
+    perms_cache[i] = permute([...Array(i).keys()]);
+  }
+  return perms_cache[i];
+}
+
+let perms = memo_perms(4);
 const operators = ["+", "-", "*", "/"];
 
 // Find expression that evaluate to 24
@@ -161,13 +169,13 @@ function parseMake24(nums, getAll = false) {
         for (const op1 in operators) {
           for (const op2 in operators) {
             let temp = scaffolds[scaffoldPtr].clone();
-            temp.find("a").data(nums[perms[permPtr][0]]);
-            temp.find("b").data(nums[perms[permPtr][1]]);
-            temp.find("c").data(nums[perms[permPtr][2]]);
-            temp.find("d").data(nums[perms[permPtr][3]]);
-            temp.find("x").data(operators[op0]);
-            temp.find("y").data(operators[op1]);
-            temp.find("z").data(operators[op2]);
+            temp.find("n0").data(nums[perms[permPtr][0]]);
+            temp.find("n1").data(nums[perms[permPtr][1]]);
+            temp.find("n2").data(nums[perms[permPtr][2]]);
+            temp.find("n3").data(nums[perms[permPtr][3]]);
+            temp.find("o0").data(operators[op0]);
+            temp.find("o1").data(operators[op1]);
+            temp.find("o2").data(operators[op2]);
 
             let tempOut = temp.toString();
             if (eval(tempOut) === 24) {
