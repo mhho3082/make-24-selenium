@@ -8,9 +8,6 @@ import { parseMake24 } from "./tree.js";
 // Environment variables
 import env from "../env.js";
 
-// Website to parse for
-const playingCardsIO = env.url;
-
 async function monitor() {
   // Set up driver
   const driver = await new Builder().forBrowser("chrome").build();
@@ -22,55 +19,66 @@ async function monitor() {
     // Set up locators for reuse
     const enterButton = By.css("button.Splash__start");
     const cardElement = By.css(
-      "div.Token--card .CustomSurface .CustomSurface__object"
+      "div.Token--card div.CustomSurface div.CustomSurface__object"
     );
 
     // Access the website
-    await driver.get(playingCardsIO);
+    await driver.get(env.url);
 
     // Click "Enter"
     await driver.wait(until.elementLocated(enterButton));
     await driver.findElement(enterButton).click();
 
     // Game loop
-    for (; ;) {
-      try {
-        // Wait and find cards
-        await driver.wait(until.elementsLocated(cardElement));
-        let cards = await driver.findElements(cardElement);
+    for (;;) {
+      // Wait and find cards
+      await driver.wait(until.elementsLocated(cardElement));
+      let cards = await driver.findElements(cardElement);
 
-        // Read the cards' values
-        let str_values = [];
-        for (const x in cards) {
-          let name = await cards[x].getCssValue("background-image");
-          if (!name.includes("cardback")) {
-            str_values.push(name.match(/french\/\w+-(.*)\.svg/)[1]);
-          }
-        }
-
-        // Turn face cards into numbers
-        let values = str_values.map(cardToInt);
-
-        // Compute output for correct number of cards
-        let output = "Wrong number of cards";
-        if (values.length === 4) {
-          output = parseMake24(values, true);
-          if (output.length === 0) {
-            output = "No solutions found";
-          }
-        }
-
-        // Clear and output the data
-        console.clear();
-        console.log(values);
-        console.log(output);
-      } catch (ignored) {
-        // Ignore errors of card(s) "missing" (recalled)
-        if (!ignored.message.includes("stale element reference:")) {
-          // Throw all other errors like normal
-          throw ignored;
+      // Read the cards' values
+      let str_values = [];
+      for (const x of cards) {
+        let name = await x.getCssValue("background-image");
+        if (!name.includes("cardback")) {
+          str_values.push(name.match(/french\/\w+-(.*)\.svg/)[1]);
         }
       }
+
+      // Turn face cards into numbers
+      let values = str_values.map(cardToInt);
+
+      // Compute output for correct number of cards
+      let output = `Wrong number of cards - expecting ${env.cards}, found ${values.length}`;
+      if (values.length === env.cards) {
+        console.log("Loading..."); // 7 cards can be catastrophically slow...
+        await Promise.race([
+          parseMake24(values, env.getAll),
+          new Promise((resolve) =>
+            setTimeout(() => resolve("timeout"), env.timeout)
+          ),
+        ]).then((x) => {
+          if (x === "timeout") {
+            output = "Timeout hit!";
+          } else if (x.length === 0) {
+            output = "No solutions found";
+          } else {
+            output = x;
+          }
+        });
+      }
+
+      // Clear and output the data
+      if (env.clearScreen) {
+        console.clear();
+      }
+      console.log(values);
+      console.log(output);
+
+      // Wait for change in cards
+      await driver.wait(async () => {
+        const newCards = await driver.findElements(cardElement);
+        return newCards.length !== cards.length;
+      });
     }
   } catch (err) {
     console.log(err.message);

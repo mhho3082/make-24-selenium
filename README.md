@@ -13,7 +13,7 @@ using JavaScript, Selenium, and binary trees_
 - Create/have a table in https://playingcards.io
   that uses the inbuilt poker deck
 - Install Node.js modules: `yarn` or `node i`
-- Create a `env.json` with a `"url"` field
+- Create/modify a `env.js` similar to below (all fields are **required**)
   pointing to your `playingcards.io` game table
 - Run this app: `yarn monitor`,
   or `npm run monitor`, or `node src/index.js`
@@ -32,10 +32,26 @@ using JavaScript, Selenium, and binary trees_
 - Few dependencies:
   Just Selenium and `chromedriver`
 
+## `env.js` example
+
+```javascript
+const env = {
+  url: "https://playingcards.io/xxxxxx",
+  cards: 4,
+  target: 24,
+  getAll: true,
+  clearScreen: true, // Turn to false for debug
+  timeout: 1000, // In milliseconds
+};
+
+export default env;
+```
+
 ## Changelog
 
 - v0.1.0: 09/01/2023, Initialize app
 - v0.1.1: 16/01/2023, Fully fix DOM element disappear error
+- v0.1.2: 01/05/2023, Dynamic tree generation
 
 ## To-dos
 

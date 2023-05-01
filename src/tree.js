@@ -1,5 +1,8 @@
 // --- TREE STRUCTURE ---
 
+// Environment variables
+import env from "../env.js";
+
 class TreeNode {
   constructor(value, isOps = false, left = null, right = null) {
     this.value = value;
@@ -159,7 +162,7 @@ function memo_scaffolds(i) {
   return scaffolds_cache[i];
 }
 
-const scaffolds = memo_scaffolds(4);
+const scaffolds = memo_scaffolds(env.cards);
 
 // --- PARSING ---
 
@@ -198,38 +201,41 @@ function memo_perms(i) {
   return perms_cache[i];
 }
 
-let perms = memo_perms(4);
+let perms = memo_perms(env.cards);
 const operators = ["+", "-", "*", "/"];
 
 // Find expression that evaluate to 24
-function parseMake24(nums, getAll = false) {
+async function parseMake24(nums, getAll = false) {
   nums.sort();
 
   let output = new Set();
 
-  // Generate all possible strings
-  for (const scaffoldPtr in scaffolds) {
-    for (const permPtr in perms) {
-      for (const op0 in operators) {
-        for (const op1 in operators) {
-          for (const op2 in operators) {
-            let temp = scaffolds[scaffoldPtr].clone();
-            temp.find("n0").data(nums[perms[permPtr][0]]);
-            temp.find("n1").data(nums[perms[permPtr][1]]);
-            temp.find("n2").data(nums[perms[permPtr][2]]);
-            temp.find("n3").data(nums[perms[permPtr][3]]);
-            temp.find("o0").data(operators[op0]);
-            temp.find("o1").data(operators[op1]);
-            temp.find("o2").data(operators[op2]);
+  for (let scaffold of scaffolds) {
+    for (let perm of perms) {
+      // Generate inputs
+      let temp = scaffold.clone();
+      for (let i = 0; i < env.cards; i++) {
+        temp.find(`n${i}`).data(nums[perm[i]]);
+      }
+      let temp_list = [temp];
+      for (let i = 0; i < env.cards - 1; i++) {
+        temp_list = temp_list.flatMap((x) =>
+          operators.map((op) => {
+            let xx = x.clone();
+            xx.find(`o${i}`).data(op);
+            return xx;
+          })
+        );
+      }
 
-            let tempOut = temp.toString();
-            if (eval(tempOut) === 24) {
-              if (getAll) {
-                output.add(tempOut);
-              } else {
-                return [tempOut];
-              }
-            }
+      // Calculate
+      for (let x of temp_list) {
+        let tempOut = x.toString();
+        if (eval(tempOut) === env.target) {
+          if (getAll) {
+            output.add(tempOut);
+          } else {
+            return [tempOut];
           }
         }
       }
