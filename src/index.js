@@ -31,54 +31,63 @@ async function monitor() {
 
     // Game loop
     for (;;) {
-      // Wait and find cards
-      await driver.wait(until.elementsLocated(cardElement));
-      let cards = await driver.findElements(cardElement);
+      try {
+        // Wait and find cards
+        await driver.wait(until.elementsLocated(cardElement));
+        let cards = await driver.findElements(cardElement);
 
-      // Read the cards' values
-      let str_values = [];
-      for (const x of cards) {
-        let name = await x.getCssValue("background-image");
-        if (!name.includes("cardback")) {
-          str_values.push(name.match(/french\/\w+-(.*)\.svg/)[1]);
+        // Read the cards' values
+        let str_values = [];
+        for (const x of cards) {
+          let name = await x.getCssValue("background-image");
+          if (!name.includes("cardback")) {
+            str_values.push(name.match(/french\/\w+-(.*)\.svg/)[1]);
+          }
+        }
+
+        // Turn face cards into numbers
+        let values = str_values.map(cardToInt);
+
+        // Compute output for correct number of cards
+        let output = `Wrong number of cards - expecting ${env.cards}, found ${values.length}`;
+        if (values.length === env.cards) {
+          console.log("Loading..."); // 7 cards can be catastrophically slow...
+          await Promise.race([
+            parseMake24(values, env.getAll),
+            new Promise((resolve) =>
+              setTimeout(() => resolve("timeout"), env.timeout)
+            ),
+          ]).then((x) => {
+            if (x === "timeout") {
+              output = "Timeout hit!";
+            } else if (x.length === 0) {
+              output = "No solutions found";
+            } else {
+              output = x;
+            }
+          });
+        }
+
+        // Clear and output the data
+        if (env.clearScreen) {
+          console.clear();
+        }
+        console.log(values);
+        console.log(output);
+
+        // Wait for change in cards
+        await driver.wait(async () => {
+          const newCards = await driver.findElements(cardElement);
+          return newCards.length !== cards.length;
+        });
+      } catch (err) {
+        if (err.name === "StaleElementReferenceError") {
+          // Ignore losing DOM access to an element
+          continue;
+        } else {
+          throw err;
         }
       }
-
-      // Turn face cards into numbers
-      let values = str_values.map(cardToInt);
-
-      // Compute output for correct number of cards
-      let output = `Wrong number of cards - expecting ${env.cards}, found ${values.length}`;
-      if (values.length === env.cards) {
-        console.log("Loading..."); // 7 cards can be catastrophically slow...
-        await Promise.race([
-          parseMake24(values, env.getAll),
-          new Promise((resolve) =>
-            setTimeout(() => resolve("timeout"), env.timeout)
-          ),
-        ]).then((x) => {
-          if (x === "timeout") {
-            output = "Timeout hit!";
-          } else if (x.length === 0) {
-            output = "No solutions found";
-          } else {
-            output = x;
-          }
-        });
-      }
-
-      // Clear and output the data
-      if (env.clearScreen) {
-        console.clear();
-      }
-      console.log(values);
-      console.log(output);
-
-      // Wait for change in cards
-      await driver.wait(async () => {
-        const newCards = await driver.findElements(cardElement);
-        return newCards.length !== cards.length;
-      });
     }
   } catch (err) {
     if (err.name === "NoSuchWindowError") {
