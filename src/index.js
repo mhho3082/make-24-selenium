@@ -81,11 +81,16 @@ async function monitor() {
       });
     }
   } catch (err) {
-    console.log(err.message);
-    console.log();
-    console.log("INFO: Don't close the broswer window manually,");
-    console.log("      hit Ctrl-C on the terminal instead!");
-    console.log();
+    if (err.name === "NoSuchWindowError") {
+      // User closed the automated window by themeselves
+      console.error("");
+      console.error("NOTE: Don't close the broswer window manually,");
+      console.error("      press Ctrl-C on the terminal instead!");
+    } else {
+      // It was a legitimate error
+      console.error("");
+      console.error(err.stack);
+    }
   } finally {
     await driver.quit();
   }
