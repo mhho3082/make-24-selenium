@@ -63,58 +63,103 @@ class TreeNode {
   }
 }
 
-const scaffolds = [
-  new TreeNode(
-    "o0",
-    true,
-    new TreeNode(
-      "o1",
-      true,
-      new TreeNode("o2", true, new TreeNode("n0"), new TreeNode("n1")),
-      new TreeNode("n2")
-    ),
-    new TreeNode("n3")
-  ),
-  new TreeNode(
-    "o0",
-    true,
-    new TreeNode(
-      "o1",
-      true,
-      new TreeNode("n0"),
-      new TreeNode("o2", true, new TreeNode("n1"), new TreeNode("n2"))
-    ),
-    new TreeNode("n3")
-  ),
-  new TreeNode(
-    "o0",
-    true,
-    new TreeNode("n0"),
-    new TreeNode(
-      "o1",
-      true,
-      new TreeNode("o2", true, new TreeNode("n1"), new TreeNode("n2")),
-      new TreeNode("n3")
-    )
-  ),
-  new TreeNode(
-    "o0",
-    true,
-    new TreeNode("n0"),
-    new TreeNode(
-      "o1",
-      true,
-      new TreeNode("n1"),
-      new TreeNode("o2", true, new TreeNode("n2"), new TreeNode("n3"))
-    )
-  ),
-  new TreeNode(
-    "o0",
-    true,
-    new TreeNode("o1", true, new TreeNode("n0"), new TreeNode("n1")),
-    new TreeNode("o2", true, new TreeNode("n2"), new TreeNode("n3"))
-  ),
-];
+// Based on https://stackoverflow.com/questions/12292532/generate-all-structurally-distinct-full-binary-trees-with-n-leaves
+// Generates a list of something like (n0o0(n1o1(n2o2n3)))
+function scaffold_str_gen(n) {
+  // Generate something like (no(no(non)))
+  let leafnode = "n";
+  let dp = [];
+  let newset = new Set();
+  newset.add(leafnode);
+  dp.push(newset);
+  for (let i = 1; i < n; i++) {
+    newset = new Set();
+    for (let j = 0; j < i; j++) {
+      for (let leftchild of dp[j]) {
+        for (let rightchild of dp[i - j - 1]) {
+          newset.add("(" + leftchild + "o" + rightchild + ")");
+        }
+      }
+    }
+    dp.push(newset);
+  }
+
+  // Turn into something like (n0o0(n1o1(n2o2n3)))
+  const base = dp.at(-1);
+  let out = [];
+  for (let str of base) {
+    let o = 0,
+      n = 0,
+      result = "";
+    for (let chr of str.split("")) {
+      switch (chr) {
+        case "o":
+          result += `o${o++}`;
+          break;
+        case "n":
+          result += `n${n++}`;
+          break;
+        default:
+          result += `${chr}`;
+          break;
+      }
+    }
+    out.push(result);
+  }
+
+  return out;
+}
+
+// Generates a tree scaffold based on something like ((((n0o0n1)o1(n2o2n3))o3n4)o4(n5o5n6))
+function scaffold_tree_gen(str) {
+  let stack = {},
+    progress = str.slice(),
+    count = 0,
+    left,
+    right;
+
+  // For checking and finding a base node group
+  const main_regexp = /\([^()]+\)/;
+  // For splitting a base node group into parent and children
+  const split_regexp = /\((?<left>\w\d+)(?<center>\w\d+)(?<right>\w\d+)\)/;
+
+  while (progress.match(main_regexp)) {
+    // Split the node group into parent and children
+    let matches = split_regexp.exec(progress.match(main_regexp)[0]);
+
+    // Decide if new or existing nodes should be used as children
+    if (matches.groups.left.charAt(0) === "n") {
+      left = new TreeNode(matches.groups.left);
+    } else {
+      left = stack[matches.groups.left];
+    }
+    if (matches.groups.right.charAt(0) === "n") {
+      right = new TreeNode(matches.groups.right);
+    } else {
+      right = stack[matches.groups.right];
+    }
+
+    // Add the new node onto the stack
+    stack[`x${count}`] = new TreeNode(matches.groups.center, true, left, right);
+
+    // Clean up and repeat
+    progress = progress.replace(main_regexp, `x${count}`);
+    count++;
+  }
+  return stack[`x${count - 1}`];
+}
+
+let scaffolds_cache = {};
+function memo_scaffolds(i) {
+  if (!scaffolds_cache[i]) {
+    scaffolds_cache[i] = scaffold_str_gen(i).map((str) =>
+      scaffold_tree_gen(str)
+    );
+  }
+  return scaffolds_cache[i];
+}
+
+const scaffolds = memo_scaffolds(4);
 
 // --- PARSING ---
 
