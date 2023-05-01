@@ -6,7 +6,7 @@ import "chromedriver";
 import { parseMake24 } from "./tree.js";
 
 // Environment variables
-import env from "../env.json" assert { type: "json" };
+import env from "../env.js";
 
 // Website to parse for
 const playingCardsIO = env.url;
@@ -33,7 +33,7 @@ async function monitor() {
     await driver.findElement(enterButton).click();
 
     // Game loop
-    while (true) {
+    for (; ;) {
       try {
         // Wait and find cards
         await driver.wait(until.elementsLocated(cardElement));
@@ -44,7 +44,7 @@ async function monitor() {
         for (const x in cards) {
           let name = await cards[x].getCssValue("background-image");
           if (!name.includes("cardback")) {
-            str_values.push(name.match(/french\/\w+\-(.*)\.svg/)[1]);
+            str_values.push(name.match(/french\/\w+-(.*)\.svg/)[1]);
           }
         }
 
