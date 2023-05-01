@@ -12,11 +12,9 @@ using JavaScript, Selenium, and binary trees_
 - Check that Chromium and/or Google Chrome is installed
 - Create/have a table in https://playingcards.io
   that uses the inbuilt poker deck
-- Install Node.js modules: `yarn` or `node i`
+- Install Node.js modules: `node i`
 - Create/modify a `env.js` similar to below (all fields are **required**)
-  pointing to your `playingcards.io` game table
-- Run this app: `yarn monitor`,
-  or `npm run monitor`, or `node src/index.js`
+- Run this app: `npm start`
 - Selenium will load the website in a new window,
   and begin to monitor for face-up cards to calculate for make 24
 - Press `Ctrl-C` at the terminal to quit
@@ -28,7 +26,7 @@ using JavaScript, Selenium, and binary trees_
 - Easy-to-view interface:
   Unnecessary brackets in answers are automatically removed
 - Reliable for long gaming sessions:
-  Can easily survive DOM element disappearing
+  Lazily loaded and handles errors gracefully
 - Few dependencies:
   Just Selenium and `chromedriver`
 
@@ -36,7 +34,7 @@ using JavaScript, Selenium, and binary trees_
 
 ```javascript
 const env = {
-  url: "https://playingcards.io/xxxxxx",
+  url: "https://playingcards.io/xxxxxx", // Point to your `playingcards.io` game table
   cards: 4,
   target: 24,
   getAll: true,
