@@ -1,5 +1,4 @@
 const config = {
-  // url: "https://playingcards.io/w2t94e",
   url: "https://playingcards.io/7je32v",
   cards: 4,
   target: 24,

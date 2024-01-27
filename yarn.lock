@@ -12,6 +12,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/chromedriver@npm:^81.0.5":
+  version: 81.0.5
+  resolution: "@types/chromedriver@npm:81.0.5"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 59b3ef13d4daac79095e38a4538c0ce16e37694cc1dd45addece1ba3b5d7bcee17b83c9caa9c3891f4accec2c44c89716acfd59f1701e663157c81604ae821c5
+  languageName: node
+  linkType: hard
+
 "@types/jsdom@npm:^21.1.6":
   version: 21.1.6
   resolution: "@types/jsdom@npm:21.1.6"
@@ -500,6 +509,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "make-24-selenium@workspace:."
   dependencies:
+    "@types/chromedriver": "npm:^81.0.5"
     "@types/jsdom": "npm:^21.1.6"
     "@types/node": "npm:^20.11.8"
     "@types/selenium-webdriver": "npm:^4"

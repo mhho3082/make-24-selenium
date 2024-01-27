@@ -17,7 +17,7 @@ using JavaScript, Selenium, and binary trees_
 - Run this app: `yarn dev`
 - Selenium will load the website in a new window,
   and begin to monitor for face-up cards to calculate for make 24
-- Press `Ctrl-C` at the terminal to quit
+- Enter <kbd>Q</kbd> at the terminal to quit
 
 ## Features
 
