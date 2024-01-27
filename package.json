@@ -1,15 +1,22 @@
 {
-  "type": "module",
+  "name": "make-24-selenium",
+  "version": "0.1.0",
+  "main": "src/index.ts",
   "license": "MIT",
-  "version": "0.1.1",
-  "dependencies": {
-    "chromedriver": "^112.0.0",
-    "selenium-webdriver": "^4.8.0"
-  },
+  "type": "module",
   "scripts": {
-    "start": "node src/index.js"
+    "dev": "tsc && node --no-deprecation build/index.js"
   },
   "devDependencies": {
-    "eslint": "^8.39.0"
+    "@types/jsdom": "^21.1.6",
+    "@types/selenium-webdriver": "^4",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "yarn@4.0.2",
+  "dependencies": {
+    "@types/node": "^20.11.8",
+    "chromedriver": "^121.0.0",
+    "jsdom": "^24.0.0",
+    "selenium-webdriver": "^4.17.0"
   }
 }

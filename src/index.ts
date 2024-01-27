@@ -1,12 +1,23 @@
 // Selenium
-import { Builder, By, until } from "selenium-webdriver";
+import { Builder, By, WebElement, until } from "selenium-webdriver";
 import "chromedriver";
 
 // Make 24 parsing
-import { parseMake24 } from "./tree.js";
+import { parse_make_24 } from "./tree_solver.js";
 
-// Environment variables
-import env from "../env.js";
+// Configs
+import config from "./config.js";
+
+async function get_card_names(cards: WebElement[]) {
+  let arr = [];
+  for (const card of cards) {
+    let name = await card.getCssValue("background-image");
+    if (name && !name.includes("cardback")) {
+      arr.push(name.match(/french\/\w+-(.*)\.svg/)![1]);
+    }
+  }
+  return arr;
+}
 
 async function monitor() {
   // Set up driver
@@ -19,43 +30,41 @@ async function monitor() {
     // Set up locators for reuse
     const enterButton = By.css("button.Splash__start");
     const cardElement = By.css(
-      "div.Token--card div.CustomSurface div.CustomSurface__object"
+      "div.Token--card div.CustomSurface div.CustomSurface__object",
     );
 
     // Access the website
-    await driver.get(env.url);
+    await driver.get(config.url);
 
     // Click "Enter"
     await driver.wait(until.elementLocated(enterButton));
     await driver.findElement(enterButton).click();
 
     // Game loop
-    for (;;) {
+    for (; ;) {
       try {
         // Wait and find cards
         await driver.wait(until.elementsLocated(cardElement));
         let cards = await driver.findElements(cardElement);
 
         // Read the cards' values
-        let str_values = [];
-        for (const x of cards) {
-          let name = await x.getCssValue("background-image");
-          if (!name.includes("cardback")) {
-            str_values.push(name.match(/french\/\w+-(.*)\.svg/)[1]);
-          }
-        }
+        let str_values = await get_card_names(cards);
 
         // Turn face cards into numbers
         let values = str_values.map(cardToInt);
 
         // Compute output for correct number of cards
-        let output = `Wrong number of cards - expecting ${env.cards}, found ${values.length}`;
-        if (values.length === env.cards) {
+        let output: string | string[] =
+          `Wrong number of cards - expecting ${config.cards}, found ${values.length}`;
+        if (values.length === config.cards) {
           console.log("Loading..."); // 7 cards can be catastrophically slow...
           await Promise.race([
-            parseMake24(values, env.getAll),
-            new Promise((resolve) =>
-              setTimeout(() => resolve("timeout"), env.timeout)
+            new Promise<string | string[]>((resolve) => {
+              const result = parse_make_24(values, config.get_all);
+              resolve(result);
+            }),
+            new Promise<string>((resolve) =>
+              setTimeout(() => resolve("timeout"), config.timeout * 1000),
             ),
           ]).then((x) => {
             if (x === "timeout") {
@@ -69,7 +78,7 @@ async function monitor() {
         }
 
         // Clear and output the data
-        if (env.clearScreen) {
+        if (config.clear_screen) {
           console.clear();
         }
         console.log(values);
@@ -78,9 +87,9 @@ async function monitor() {
         // Wait for change in cards
         await driver.wait(async () => {
           const newCards = await driver.findElements(cardElement);
-          return newCards.length !== cards.length;
+          return (await get_card_names(newCards)).length !== str_values.length;
         });
-      } catch (err) {
+      } catch (err: any) {
         if (err.name === "StaleElementReferenceError") {
           // Ignore losing DOM access to an element
           continue;
@@ -89,11 +98,11 @@ async function monitor() {
         }
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     if (err.name === "NoSuchWindowError") {
       // User closed the automated window by themeselves
       console.error("");
-      console.error("NOTE: Don't close the broswer window manually,");
+      console.error("INFO: Don't close the broswer window manually,");
       console.error("      press Ctrl-C on the terminal instead!");
     } else {
       // It was a legitimate error
@@ -105,19 +114,8 @@ async function monitor() {
   }
 }
 
-function cardToInt(str) {
+function cardToInt(str: string) {
   switch (str) {
-    case "1":
-    case "2":
-    case "3":
-    case "4":
-    case "5":
-    case "6":
-    case "7":
-    case "8":
-    case "9":
-    case "10":
-      return Number(str);
     case "a":
       return 1;
     case "j":
@@ -127,8 +125,24 @@ function cardToInt(str) {
     case "k":
       return 13;
     default:
-      return 1;
+      return Number(str);
   }
 }
 
 monitor();
+
+// const test_run = () => {
+//   const arr = test_questions; // From test_data.ts
+//   const t_s = performance.now();
+//
+//   const l = arr.length;
+//   const round = Math.pow(10, Math.floor(Math.log10(l)) - 2);
+//   arr.forEach((v, i) => {
+//     const o = parse_make_24(v);
+//     o.length || console.log(`Fail: ${v}`);
+//     !(i % round) && process.stdout.write(`${i}/${l}\r`);
+//   });
+//
+//   const t_e = performance.now();
+//   console.log(`Took ${((t_e - t_s) / 1000).toFixed(2)} seconds`);
+// };
