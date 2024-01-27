@@ -38,7 +38,7 @@ const config = {
   cards: 4,
   target: 24,
   get_all: true,
-  clear_screen: true, // Turn to false for debug
+  clear_screen: true,
   timeout: 1, // In seconds
 };
 

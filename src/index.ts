@@ -56,26 +56,26 @@ async function monitor() {
 
         // Compute output for correct number of cards
         let output: string | string[] =
-          `Wrong number of cards - expecting ${config.cards}, found ${values.length}`;
+          `${values.length}/${config.cards} cards`;
         if (values.length === config.cards) {
           console.log("Loading..."); // 7 cards can be catastrophically slow...
-          await Promise.race([
-            new Promise<string | string[]>((resolve) => {
+          const temp = await Promise.race([
+            new Promise<string[]>((resolve) => {
               const result = parse_make_24(values, config.get_all);
               resolve(result);
             }),
             new Promise<string>((resolve) =>
               setTimeout(() => resolve("timeout"), config.timeout * 1000),
             ),
-          ]).then((x) => {
-            if (x === "timeout") {
-              output = "Timeout hit!";
-            } else if (x.length === 0) {
-              output = "No solutions found";
-            } else {
-              output = x;
-            }
-          });
+          ]);
+
+          if (temp === "timeout") {
+            output = "Timeout hit!";
+          } else if (temp.length === 0) {
+            output = "No solutions found";
+          } else {
+            output = temp;
+          }
         }
 
         // Clear and output the data
@@ -129,7 +129,7 @@ function card_to_i(str: string) {
     case "k":
       return 13;
     default:
-      return parseInt(str) || 1;
+      return parseInt(str) || 1; // Should not have 0
   }
 }
 
@@ -140,7 +140,6 @@ const rl = createInterface({
 });
 rl.on("line", (input) => {
   if (["Q", "q"].includes(input)) {
-    console.log("Quitting...");
     keep_running = false;
     rl.close();
   }

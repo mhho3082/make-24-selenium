@@ -1,12 +1,14 @@
-const CARD_NUM = 4;
-const TARGET = 24;
+import config from "./config.js";
+
+const CARD_NUM = config.cards;
+const TARGET = config.target;
 
 class TreeNode {
   constructor(
     public value: string,
     public left?: TreeNode,
     public right?: TreeNode,
-  ) {}
+  ) { }
 
   find(value: string): TreeNode | undefined {
     return this.value === value
