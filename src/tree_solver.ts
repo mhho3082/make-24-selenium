@@ -8,7 +8,7 @@ class TreeNode {
     public value: string,
     public left?: TreeNode,
     public right?: TreeNode,
-  ) { }
+  ) {}
 
   find(value: string): TreeNode | undefined {
     return this.value === value
@@ -33,15 +33,32 @@ class TreeNode {
     const high = ["*", "/"].includes(this.value);
     const is_low = (v?: string) => v && ["+", "-"].includes(v);
 
-    let l = this.left?.toString();
+    let l = this.left!.toString();
     if (high && is_low(this.left?.value)) {
       l = `(${l})`;
     }
-    let r = this.right?.toString();
+    let r = this.right!.toString();
     if (high && is_low(this.right?.value)) {
       r = `(${r})`;
     }
-    return `${l}${this.value}${r}`;
+
+    // Reduce duplicates for final output by enforcing an arbitary order
+    let out =
+      ["+", "*"].includes(this.value) && l.localeCompare(r) > 0
+        ? `${r}${this.value}${l}`
+        : `${l}${this.value}${r}`;
+
+    // Enforce arbitary +- order
+    if (!out.match(/[()]/)) {
+      out = out
+        .replace(/^\+?/, "+")
+        .match(/[+-]?[^+-]+/g)!
+        .sort()
+        .join("")
+        .replace(/^\+/, "");
+    }
+
+    return out;
   }
 }
 

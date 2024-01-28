@@ -5,7 +5,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "tsc && node --no-deprecation build/index.js"
+    "dev": "tsc && node --no-deprecation build/index.js",
+    "test": "tsc && node --no-deprecation build/test.js"
   },
   "devDependencies": {
     "@types/chromedriver": "^81.0.5",

@@ -1,6 +1,6 @@
-// Selenium
 import { Builder, By, WebElement, until } from "selenium-webdriver";
 import "chromedriver";
+
 import { createInterface } from "readline";
 
 import { parse_make_24 } from "./tree_solver.js";
@@ -15,6 +15,15 @@ async function get_card_names(cards: WebElement[]) {
     }
   }
   return arr;
+}
+
+function cli(...values: any[]) {
+  if (config.clear_screen) {
+    console.clear();
+  }
+  for (const value of values) {
+    console.log(value);
+  }
 }
 
 // Running flag
@@ -54,43 +63,39 @@ async function monitor() {
         // Turn face cards into numbers
         let values = str_values.map(card_to_i);
 
-        // Compute output for correct number of cards
         let output: string | string[] =
           `${values.length}/${config.cards} cards`;
+
+        // Compute output if number of cards is correct
         if (values.length === config.cards) {
-          console.log("Loading..."); // 7 cards can be catastrophically slow...
+          // Set up loading screen
+          // 7 cards can be catastrophically slow...
+          cli(values, "Calculating solutions...");
+
           const temp = await Promise.race([
-            new Promise<string[]>((resolve) => {
-              const result = parse_make_24(values, config.get_all);
-              resolve(result);
-            }),
+            new Promise<string[]>((resolve) =>
+              resolve(parse_make_24(values, config.get_all)),
+            ),
             new Promise<string>((resolve) =>
-              setTimeout(() => resolve("timeout"), config.timeout * 1000),
+              setTimeout(
+                () => resolve("Timeout hit!"),
+                Math.round(config.timeout * 1000),
+              ),
             ),
           ]);
 
-          if (temp === "timeout") {
-            output = "Timeout hit!";
-          } else if (temp.length === 0) {
-            output = "No solutions found";
-          } else {
-            output = temp;
-          }
+          output = temp.length === 0 ? "No solutions found" : temp;
         }
 
         // Clear and output the data
-        if (config.clear_screen) {
-          console.clear();
-        }
-        console.log(values);
-        console.log(output);
+        cli(values, output);
 
         // Wait for change in cards
         await driver.wait(async () => {
           const new_cards = await driver.findElements(card_el);
           return (
             !keep_running ||
-            (await get_card_names(new_cards)).length !== str_values.length
+            (await get_card_names(new_cards)).join(",") !== str_values.join(",")
           );
         });
       } catch (err: any) {
@@ -114,7 +119,8 @@ async function monitor() {
       console.error(err.stack);
     }
   } finally {
-    await driver.quit();
+    await driver.quit(); // Close the driver
+    rl.close(); // Close the CLI
   }
 }
 
@@ -141,24 +147,7 @@ const rl = createInterface({
 rl.on("line", (input) => {
   if (["Q", "q"].includes(input)) {
     keep_running = false;
-    rl.close();
   }
 });
 
 monitor();
-
-// const test_run = () => {
-//   const arr = test_questions; // From test_data.ts
-//   const t_s = performance.now();
-//
-//   const l = arr.length;
-//   const round = Math.pow(10, Math.floor(Math.log10(l)) - 2);
-//   arr.forEach((v, i) => {
-//     const o = parse_make_24(v);
-//     o.length || console.log(`Fail: ${v}`);
-//     !(i % round) && process.stdout.write(`${i}/${l}\r`);
-//   });
-//
-//   const t_e = performance.now();
-//   console.log(`Took ${((t_e - t_s) / 1000).toFixed(2)} seconds`);
-// };
