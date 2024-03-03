@@ -42,13 +42,13 @@ class TreeNode {
       r = `(${r})`;
     }
 
-    // Reduce duplicates for final output by enforcing an arbitary order
+    // Arbitary order for + and * operands
     let out =
       ["+", "*"].includes(this.value) && l.localeCompare(r) > 0
         ? `${r}${this.value}${l}`
         : `${l}${this.value}${r}`;
 
-    // Enforce arbitary +- order
+    // Arbitary order over +- chains
     if (!out.match(/[()]/)) {
       out = out
         .replace(/^\+?/, "+")
